@@ -4,7 +4,7 @@ This repository contains files to setup Rancher on the Google Kubernetes Engine.
 
 # Commands
 
-Install `ingress-nginx`:
+To route incomming HTTP traffic, let's setup an `ingress-nginx` controller first.
 ```bash
 helm upgrade --install --wait --debug \
     ingress-nginx ingress-nginx/ingress-nginx \
@@ -13,18 +13,26 @@ helm upgrade --install --wait --debug \
     --create-namespace
 ```
 
-Install `cert-manager`:
+We want to secure all available applications using TLS, thus we install `cert-manager` that issues x509 certificates using LetsEncrypt automatically.
 ```bash
 helm upgrade --install --wait --debug cert-manager \
-    -f infrastructure/cert-manager/values.yaml \
     -n infrastructure \
-    jetstack/cert-manager
+    jetstack/cert-manager \
+    --set installCRDs=true
 ```
 
-Install `rancher`:
+The `ClusterIssuer` is the issuer noted in the ingress annoations to issue and inject the certificates to ingress resources.
 ```bash
-helm install rancher rancher-latest/rancher \
-    -f infrastrucutre
+kubectl apply \
+    -f infrastructure/cert-manager/cluster-issuer.yaml \
+    -n infrastructure
+```
+
+Let's setup `Rancher` to administrate the whole cluster. Adapt `bootstrapPassword` and `hostname` accordingly.
+```bash
+helm upgrade --install --wait --debug rancher rancher-latest/rancher \
+    -f infrastructure/rancher/values.yaml
     --namespace cattle-system \
     --set bootstrapPassword=***
+    --set hostname=***
 ```

@@ -1,1 +1,7 @@
-hostname: raiun.de
+ingress:
+  enabled: true
+  tls:
+    source: "secret"
+  extraAnnotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-clusterissuer"
